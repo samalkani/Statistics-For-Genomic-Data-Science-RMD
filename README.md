@@ -1,7 +1,5 @@
 # Statistics-For-Genomic-Data-Science-RMD
 
-# Statistics-For-Genomic-Data-Science-HTML
-
 ## 1.	Description
 
 Introduction to the statistics and the most popular genomic data science projects. A collection of R Markdown documents with R programming code plus explanations that can be downloaded and printed out. The same analyses are also available in R code HTML format and R code see links to these repositories as well
