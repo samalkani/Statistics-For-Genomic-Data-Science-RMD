@@ -1,0 +1,183 @@
+---
+title: "P Values and Multiple Testing in R - Part A"
+author: "Sasha Ajay Malkani"
+date: "2025-11-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Installing Bioconductor package
+
+```{r 1. Installing Bioconductor package}
+# if (!require("BiocManager", quietly = TRUE))
+#   install.packages("BiocManager")
+# BiocManager::install()
+
+```
+
+## 2. Installing qvalue
+
+```{r 2. Installing qvalue}
+# BiocManager::install(c("qvalue"), type = "source", force = TRUE)
+
+```
+
+## 3. Troubleshooting installing packages
+
+```{r 3. Troubleshooting installing packages}
+# BiocManager::valid()
+
+```
+
+## 4. Load Libraries
+
+```{r 4. Load Libraries}
+library(devtools)
+library(Biobase)
+library(limma)
+library(edge)
+library(genefilter)
+library(qvalue)
+
+```
+
+## 5. Plotting Parameters
+
+```{r 5. Plotting Parameters}
+tropical = c("darkorange", "dodgerblue", "hotpink", "limegreen", "yellow")
+palette(tropical)
+par(pch=19)
+
+```
+
+## 6. Load the Data
+
+```{r 6. Load the Data}
+con =url("http://bowtie-bio.sourceforge.net/recount/ExpressionSets/bottomly_eset.RData")
+load(file=con)
+close(con)
+bot = bottomly.eset
+bot
+pdata=pData(bot)
+head(pdata)
+edata=as.matrix(exprs(bot))
+head(edata)
+fdata = fData(bot)
+head(fdata)
+ls()
+
+```
+
+## 7. Log2 transform and removing lowly expressed genes
+
+```{r 7. Log2 transform and removing lowly expressed genes}
+edata = log2(as.matrix(edata) + 1)
+edata = edata[rowMeans(edata) > 10, ]
+
+```
+
+## 8. Calculating the F-statistic and p-values using the gene filter package
+
+```{r 8. Calculating the F-statistic and p-values}
+fstats_obj = rowFtests(edata,as.factor(pdata$strain))
+hist(fstats_obj$p.value,col=2)
+
+```
+
+## 9. Construct an adjusted model using the edge package. 
+
+Strain (variable of interest), Lane (adjustment variable), model is not moderated (may get inflated statistics)
+
+```{r 9. Construct an adjusted model using the edge package.}
+edge_study = build_study(edata, grp = pdata$strain, adj.var = as.factor(pdata$lane.number))
+de_obj = lrt(edge_study)
+qval = qvalueObj(de_obj)
+hist(qval$pvalues,col=3)
+
+```
+
+## 10. P-values for moderated statistics with Limma package
+
+```{r 10. P-values for moderated statistics with Limma package}
+mod = model.matrix(~ pdata$strain + pdata$lane.number)
+fit_limma = lmFit(edata,mod)
+ebayes_limma = eBayes(fit_limma)
+limma_pvals = topTable(ebayes_limma,number=dim(edata)[1])$P.Value
+hist(limma_pvals,col=4)
+
+```
+
+## 11. Calculating empirical permutation p-values with edge
+
+### 11. A. Setting randomisation seed
+
+```{r 11. A. Setting randomisation seed}
+set.seed(3333)
+
+```
+
+### 11. B. Number of permutations
+
+```{r 11. B. Number of permutations}
+B = 1000
+
+```
+
+### 11. C. Row T-tests on observed data
+
+```{r 11. C. Row T-tests on observed data}
+tstats_obj = rowttests(edata,pdata$strain)
+
+```
+
+### 11. D. Empty Matrix ready to be populated by simulated data (permutations)
+
+```{r 11. D. Empty Matrix ready to be populated by simulated data (permutations)}
+tstat0 = matrix(NA,nrow=dim(edata)[1],ncol=B)
+
+```
+
+### 11. E. Re-assign T-statistic from observed data
+
+```{r 11. E. Re-assign T-statistic from observed data}
+tstat = tstats_obj$statistic
+
+```
+
+### 11. F. Re-assign phenotype data for the strain variable
+
+```{r 11. F. Re-assign phenotype data for the strain variable}
+strain = pdata$strain
+
+```
+
+### 11. G. Populate empty matrix with simulated data (permutations)
+
+```{r 11. G. Populate empty matrix with simulated data (permutations)}
+for(i in 1:B){
+  strain0 = sample(strain)
+  tstat0[,i] = rowttests(edata,strain0)$statistic
+}
+
+```
+
+### 11. H. Generate P-values from t-statistics from observed and simulated data
+
+```{r 11. H. Generate P-values from t-statistics}
+emp_pvals = empPvals(tstat,tstat0)
+hist(emp_pvals,col=2)
+
+```
+
+## 12. Session Info
+
+```{r 12. Session Info}
+devtools::session_info()
+Sys.Date()
+
+```
+
+

@@ -1,0 +1,99 @@
+---
+title: "R Markdown"
+author: "Sasha Ajay Malkani"
+date: "2025-11-06"
+output: html_document
+---
+```{r}
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Text & Inline hotlink references
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+## 2. Tables
+
+```{r cars}
+summary(cars)
+```
+
+## 3. Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+## 4. Headings
+
+# Headings
+
+## Headings
+
+### Headings
+
+## 5. Lists
+
+* One
+* Two
+* Three
+
+## 6. Numbered lists
+
+1. One
+2. Two
+3. Three
+
+## 7. Figures
+
+```{r figures, fig.height=5 , fig.align='center'}
+x = rnorm(100)
+plot(x, col=3, pch=19)
+
+```
+
+## 8. Figures no code
+
+```{r figures no code, fig.height=5 , fig.align='center', echo=FALSE}
+x = rnorm(100)
+plot(x, col=3, pch=19)
+
+```
+
+## 9. Using cache=FALSE the first time it will run slow (delay for 10 seconds)
+
+```{r longtime, cache=FALSE}
+Sys.sleep(10)
+
+```
+
+## 10. Using cache=TRUE the second time it will run fast (recompile)
+
+```{r longtime2, cache=TRUE}
+Sys.sleep(10)
+
+```
+
+## 11. Session Info & Date
+
+```{r session info}
+sessionInfo()
+# BiocManager::install("devtools")
+# library(devtools)
+devtools::session_info()
+Sys.Date()
+
+```
+
+Time and date: `r Sys.Date()`
+
+
+
